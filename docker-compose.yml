@@ -1,74 +1,217 @@
 name: medibook
 
+# Liveness check shared by the four FastAPI services.
+x-service-healthcheck: &service-healthcheck
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+  interval: 10s
+  timeout: 3s
+  retries: 5
+
 services:
+  # One PostgreSQL server, one database and login per service (db/init).
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: medibook
-      POSTGRES_USER: medibook
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env (copy .env.example)}
+      POSTGRES_USER: medibook_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: postgres
+      # Read by db/init/01-create-databases.sh on the first start of an empty volume.
+      DOCTOR_DB_PASSWORD: ${DOCTOR_DB_PASSWORD:?Set DOCTOR_DB_PASSWORD in .env}
+      PATIENT_DB_PASSWORD: ${PATIENT_DB_PASSWORD:?Set PATIENT_DB_PASSWORD in .env}
+      APPOINTMENT_DB_PASSWORD: ${APPOINTMENT_DB_PASSWORD:?Set APPOINTMENT_DB_PASSWORD in .env}
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medibook -d medibook"]
+      # TCP check, so the container is healthy only after the init scripts finish.
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "medibook_admin", "-d", "postgres"]
       interval: 5s
       timeout: 3s
       retries: 10
+      start_period: 20s
 
-  api:
-    build: ./app/api
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      STAFF_EMAIL: ${STAFF_EMAIL:?Set STAFF_EMAIL in .env}
+      STAFF_PASSWORD: ${STAFF_PASSWORD:?Set STAFF_PASSWORD in .env}
+      STAFF_NAME: ${STAFF_NAME:-Front desk}
+      STAFF_ROLE: ${STAFF_ROLE:-Receptionist}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+    ports:
+      - "8004:8000"
+    healthcheck: *service-healthcheck
+
+  doctor-service:
+    build: ./services/doctor-service
     environment:
       DB_HOST: db
       DB_PORT: "5432"
-      DB_NAME: medibook
-      DB_USER: medibook
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: doctors
+      DB_USER: doctor_service
+      DB_PASSWORD: ${DOCTOR_DB_PASSWORD:?Set DOCTOR_DB_PASSWORD in .env}
       APP_VERSION: ${APP_VERSION:-1.0.0}
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
+    healthcheck: *service-healthcheck
+
+  patient-service:
+    build: ./services/patient-service
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: patients
+      DB_USER: patient_service
+      DB_PASSWORD: ${PATIENT_DB_PASSWORD:?Set PATIENT_DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      SEED_ENABLED: "true"
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+    ports:
+      - "8002:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck: *service-healthcheck
+
+  appointment-service:
+    build: ./services/appointment-service
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: appointments
+      DB_USER: appointment_service
+      DB_PASSWORD: ${APPOINTMENT_DB_PASSWORD:?Set APPOINTMENT_DB_PASSWORD in .env}
+      DOCTOR_SERVICE_URL: http://doctor-service:8000
+      PATIENT_SERVICE_URL: http://patient-service:8000
+      CLINIC_TZ: America/Toronto
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      SEED_ENABLED: "true"
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+    ports:
+      - "8003:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      doctor-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+    healthcheck: *service-healthcheck
+
+  # Static web app; Nginx also routes /api/... to the services above.
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      doctor-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+      appointment-service:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
       interval: 10s
       timeout: 3s
       retries: 5
 
-  frontend:
-    build: ./app/frontend
-    ports:
-      - "8080:8080"
+  # One-off job that loads demo data on first start, then exits.
+  seed:
+    build: ./tools/seed
+    restart: "no"
+    environment:
+      DOCTOR_SERVICE_URL: http://doctor-service:8000
+      PATIENT_SERVICE_URL: http://patient-service:8000
+      APPOINTMENT_SERVICE_URL: http://appointment-service:8000
+      TZ: America/Toronto
     depends_on:
-      api:
+      doctor-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+      appointment-service:
         condition: service_healthy
 
-  # Test profile: ephemeral database for the test suite.
+  # Test profile: each suite uses a throwaway in-memory database.
   db-test:
     image: postgres:16-alpine
     profiles: ["test"]
     environment:
-      POSTGRES_DB: medibook_test
       POSTGRES_USER: medibook
       POSTGRES_PASSWORD: test-only
+      POSTGRES_DB: postgres
     tmpfs:
       - /var/lib/postgresql/data
+    volumes:
+      - ./db/init-test:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medibook -d medibook_test"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "medibook", "-d", "postgres"]
       interval: 2s
       timeout: 3s
       retries: 15
 
-  api-tests:
+  auth-tests:
     build:
-      context: ./app/api
+      context: ./services/auth-service
+      target: test
+    profiles: ["test"]
+    environment:
+      JWT_SECRET: test-secret
+
+  doctor-tests:
+    build:
+      context: ./services/doctor-service
       target: test
     profiles: ["test"]
     environment:
       DB_HOST: db-test
-      DB_NAME: medibook_test
+      DB_PORT: "5432"
+      DB_NAME: doctors_test
       DB_USER: medibook
       DB_PASSWORD: test-only
+      JWT_SECRET: test-secret
+      SEED_ENABLED: "true"
+    depends_on:
+      db-test:
+        condition: service_healthy
+
+  patient-tests:
+    build:
+      context: ./services/patient-service
+      target: test
+    profiles: ["test"]
+    environment:
+      DB_HOST: db-test
+      DB_PORT: "5432"
+      DB_NAME: patients_test
+      DB_USER: medibook
+      DB_PASSWORD: test-only
+      JWT_SECRET: test-secret
+      SEED_ENABLED: "true"
+    depends_on:
+      db-test:
+        condition: service_healthy
+
+  appointment-tests:
+    build:
+      context: ./services/appointment-service
+      target: test
+    profiles: ["test"]
+    environment:
+      DB_HOST: db-test
+      DB_PORT: "5432"
+      DB_NAME: appointments_test
+      DB_USER: medibook
+      DB_PASSWORD: test-only
+      JWT_SECRET: test-secret
+      SEED_ENABLED: "true"
     depends_on:
       db-test:
         condition: service_healthy
