@@ -1,0 +1,23 @@
+# Secrets and local settings
+.env
+*.pem
+kubeconfig
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
