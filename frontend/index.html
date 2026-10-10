@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediBook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app-public" hidden>
+  <header class="nav-shell">
+    <nav class="nav" aria-label="Website">
+      <a class="brand" href="#home" data-go="home"><span class="mark" data-icon="plus"></span><span>MediBook</span></a>
+      <div class="nav-links">
+        <button type="button" data-scroll="sec-departments">Departments</button>
+        <button type="button" data-scroll="sec-doctors">Doctors</button>
+        <button type="button" data-scroll="sec-visit">Visit info</button>
+        <button type="button" data-scroll="sec-faq">FAQ</button>
+      </div>
+      <div class="nav-actions">
+        <button type="button" class="btn btn-ghost btn-pill hide-xs" data-go="login">Staff sign in</button>
+        <button type="button" class="btn btn-primary btn-pill" data-book>Book now</button>
+        <button type="button" class="icon-btn nav-menu" id="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu-sheet"><span data-icon="menu"></span></button>
+      </div>
+    </nav>
+    <div class="menu-sheet" id="menu-sheet" hidden>
+      <button type="button" data-scroll="sec-departments">Departments</button>
+      <button type="button" data-scroll="sec-doctors">Doctors</button>
+      <button type="button" data-scroll="sec-visit">Visit info</button>
+      <button type="button" data-scroll="sec-faq">FAQ</button>
+      <button type="button" data-go="login">Staff sign in</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="view-home">
+      <div class="wrap hero">
+        <div>
+          <span class="hero-badge"><span class="dot" aria-hidden="true"></span>Family and specialist care in Toronto</span>
+          <h1>Book a doctor's appointment <span class="hl">in under a minute.</span></h1>
+          <p class="lede">See real open times across five departments, pick the one that suits you, and get your booking reference straight away. No phone queue, no call-backs.</p>
+          <div class="hero-cta">
+            <button type="button" class="btn btn-primary btn-lg" data-book>Book appointment</button>
+            <button type="button" class="btn btn-secondary btn-lg" data-scroll="sec-doctors">Find a doctor</button>
+          </div>
+          <div class="hero-stats">
+            <div><strong>5</strong><span>departments</span></div>
+            <div><strong id="st-open">0</strong><span>open slots this week</span></div>
+            <div><strong>Mon–Sat</strong><span>clinic hours</span></div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <aside class="next-card" aria-labelledby="next-title">
+            <div class="next-head"><h2 id="next-title">Next available</h2><span class="muted small" id="next-asof"></span></div>
+            <div id="home-next" style="display:grid;gap:8px"></div>
+          </aside>
+          <div class="float-chip" aria-hidden="true"><span data-icon="clock"></span>Mon–Sat · from 9 a.m.</div>
+          <div class="float-card" aria-hidden="true"><span class="float-ico" data-icon="check"></span><span><span class="cell-main">Booking confirmed</span><span class="cell-sub">Your reference appears instantly</span></span></div>
+        </div>
+      </div>
+
+      <div class="band"><div class="wrap section" id="sec-departments">
+        <div class="section-head"><h2>Departments</h2><p>Each department has its own doctor, room and clinic days. Pick one to see open times.</p></div>
+        <div class="dept-tiles" id="home-depts"></div>
+      </div></div>
+
+      <div class="wrap section" id="sec-doctors">
+        <div class="section-head"><h2>Our doctors</h2><p>Every doctor's next open time is shown live from the clinic schedule.</p></div>
+        <div class="doc-cards" id="home-docs"></div>
+      </div>
+
+      <div class="band"><div class="wrap section">
+        <div class="section-head"><h2>How booking works</h2></div>
+        <ol class="steps">
+          <li><span class="step-n">1</span><h3>Choose a doctor</h3><p>Pick a department, or the doctor you saw last time.</p></li>
+          <li><span class="step-n">2</span><h3>Pick an open time</h3><p>Only free times are shown, so there's no back-and-forth.</p></li>
+          <li><span class="step-n">3</span><h3>Get your reference</h3><p>Show your booking reference at the front desk when you arrive.</p></li>
+        </ol>
+      </div></div>
+
+      <div class="wrap section" id="sec-visit">
+        <div class="section-head"><h2>Visit information</h2></div>
+        <div class="info-grid">
+          <div class="info-card">
+            <h3><span data-icon="clock"></span>Clinic hours</h3>
+            <table class="hours"><tbody>
+              <tr><th scope="row">Monday to Friday</th><td>9:00 a.m. – 5:00 p.m.</td></tr>
+              <tr><th scope="row">Saturday</th><td>9:00 a.m. – 1:00 p.m.</td></tr>
+              <tr><th scope="row">Sunday and holidays</th><td>Closed</td></tr>
+            </tbody></table>
+          </div>
+          <div class="info-card">
+            <h3><span data-icon="list"></span>What to bring</h3>
+            <ul class="bullets">
+              <li>Your Ontario health card (OHIP)</li>
+              <li>Your booking reference</li>
+              <li>A list of the medications you take</li>
+              <li>Any referral letter or recent test results</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h3><span data-icon="pin"></span>Find us</h3>
+            <p>MediBook Clinic<br>100 Example Avenue, Toronto, ON</p>
+            <p>Front desk: <span class="mono">416-555-0199</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="band"><div class="wrap section" id="sec-faq">
+        <div class="section-head"><h2>Questions</h2></div>
+        <div class="faq">
+          <details><summary>Can I book for my child?</summary><p>Yes. Choose Pediatrics and enter your child's name and date of birth. Pediatrics sees patients under 18.</p></details>
+          <details><summary>How do I cancel or change my appointment?</summary><p>Call the front desk with your booking reference. We ask for at least 24 hours' notice so someone else can use the time.</p></details>
+          <details><summary>Do I need a referral?</summary><p>Not for Family Medicine, Pediatrics or Dermatology. Cardiology and Orthopedics usually need a referral from your family doctor; bring it to your visit.</p></details>
+          <details><summary>What if I'm running late?</summary><p>Call us. If you're more than 15 minutes late, we may need to move you to the next open time.</p></details>
+        </div>
+      </div></div>
+    </section>
+
+    <section id="view-book" hidden>
+      <div class="wrap wiz">
+        <div class="wiz-head">
+          <div><p class="eyebrow">Online booking</p><h1>Book an appointment</h1></div>
+          <button type="button" class="btn btn-ghost" data-go="home">Back to website</button>
+        </div>
+        <ol class="stepper" id="wiz-steps"></ol>
+        <div id="wiz-body"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pub-foot">
+    <div class="wrap pub-foot-in">
+      <span class="brand" style="font-size:16px"><span class="mark" data-icon="plus"></span>MediBook</span>
+      <div class="foot-links">
+        <span>© MediBook Clinic, Toronto</span>
+        <button type="button" class="link" data-go="login">Staff sign in</button>
+      </div>
+      <div class="theme-switch" role="group" aria-label="Colour theme">
+        <button type="button" data-theme-set="light"><span data-icon="sun"></span>Light</button>
+        <button type="button" data-theme-set="dark"><span data-icon="moon"></span>Dark</button>
+        <button type="button" data-theme-set="system"><span data-icon="monitor"></span>System</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div id="app-login" hidden>
+  <div class="login-brand">
+    <a class="brand" href="#home" data-go="home"><span class="mark" data-icon="plus"></span>MediBook</a>
+    <div>
+      <p class="eyebrow">Staff portal</p>
+      <h2>Everything the front desk needs, in one place.</h2>
+    </div>
+    <ul class="login-list">
+      <li><span data-icon="calendar"></span>See today's schedule and every doctor's day at a glance.</li>
+      <li><span data-icon="globe"></span>Online bookings from the website appear instantly.</li>
+      <li><span data-icon="shield"></span>Patient records are only visible after you sign in.</li>
+    </ul>
+  </div>
+  <div class="login-form-wrap">
+    <form class="login-card" id="lg-form" novalidate>
+      <div><h1>Sign in</h1><p class="muted">Use your clinic staff account.</p></div>
+      <div class="field"><label for="lg-email">Email</label><input id="lg-email" type="email" autocomplete="username" placeholder="name@medibook.test"></div>
+      <div class="field"><label for="lg-pass">Password</label><input id="lg-pass" type="password" autocomplete="current-password"></div>
+      <p class="form-error" id="lg-error" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Sign in</button>
+      <button type="button" class="link" data-go="home">Back to the website</button>
+    </form>
+  </div>
+</div>
+
+<div id="app-staff" hidden>
+  <aside class="side" aria-label="Staff navigation">
+    <div class="side-brand"><span class="brand"><span class="mark" data-icon="plus"></span>MediBook</span></div>
+    <nav class="side-nav">
+      <button type="button" data-staff="dashboard"><span data-icon="grid"></span>Dashboard</button>
+      <button type="button" data-staff="appointments"><span data-icon="calendar"></span>Appointments</button>
+      <button type="button" data-staff="patients"><span data-icon="users"></span>Patients</button>
+      <button type="button" data-staff="doctors"><span data-icon="steth"></span>Doctors</button>
+    </nav>
+    <p class="side-label">Website</p>
+    <div class="side-extra">
+      <button type="button" class="btn btn-ghost btn-sm" data-go="home" style="justify-content:flex-start"><span data-icon="globe"></span>View public site</button>
+      <div class="theme-switch" role="group" aria-label="Colour theme">
+        <button type="button" data-theme-set="light" aria-label="Light theme"><span data-icon="sun"></span></button>
+        <button type="button" data-theme-set="dark" aria-label="Dark theme"><span data-icon="moon"></span></button>
+        <button type="button" data-theme-set="system" aria-label="System theme"><span data-icon="monitor"></span></button>
+      </div>
+    </div>
+    <div class="side-foot">
+      <span class="avatar av-sm" id="who-init">FD</span>
+      <div class="who"><span id="who-name" style="font-size:13px;font-weight:800;color:var(--ink)">Front desk</span><span id="who-role">Receptionist</span></div>
+      <button type="button" class="icon-btn" id="signout" aria-label="Sign out" style="margin-left:auto"><span data-icon="logout"></span></button>
+    </div>
+  </aside>
+  <div class="staff-main">
+    <div class="staff-top">
+      <label class="search"><span class="sr">Search patients</span><span data-icon="search"></span><input id="g-search" type="search" placeholder="Search patients by name, MRN or phone" autocomplete="off"></label>
+      <button type="button" class="btn btn-primary" data-sbook><span data-icon="plus"></span>New booking</button>
+    </div>
+
+    <section id="sv-dashboard" class="staff-body" hidden>
+      <div class="page-head"><div><h1 id="dash-greet">Good morning</h1><p class="muted" id="dash-date"></p></div></div>
+      <div class="kpis" id="dash-kpis"></div>
+      <div class="grid-2">
+        <section class="panel"><div class="panel-head"><div><h2>Appointments, next 7 days</h2><p class="muted small">Booked and completed visits per day. Cancellations are left out.</p></div></div><div id="chart-week"></div></section>
+        <section class="panel"><div class="panel-head"><div><h2>Upcoming by doctor</h2><p class="muted small">Scheduled visits from now on</p></div></div><div id="chart-doctors"></div></section>
+      </div>
+      <div class="grid-main">
+        <section class="panel flush"><div class="panel-head"><div><h2>Today's schedule</h2><p class="muted small" id="today-sub"></p></div><button type="button" class="btn btn-ghost btn-sm" data-dayview="">Day view</button></div><div id="today-list"></div></section>
+        <section class="panel flush"><div class="panel-head"><div><h2>Latest online bookings</h2><p class="muted small">Made by patients on the website</p></div></div><ul class="feed" id="online-feed"></ul></section>
+      </div>
+    </section>
+
+    <section id="sv-appointments" class="staff-body" hidden>
+      <div class="page-head"><div><h1>Appointments</h1><p class="muted" id="ap-count"></p></div>
+        <div class="seg" role="group" aria-label="View"><button type="button" data-apview="list"><span data-icon="list"></span>List</button><button type="button" data-apview="day"><span data-icon="columns"></span>Day</button></div>
+      </div>
+      <div class="toolbar">
+        <label class="search"><span class="sr">Search appointments</span><span data-icon="search"></span><input id="ap-q" type="search" placeholder="Search patient, MRN, reference or reason" autocomplete="off"></label>
+        <label class="field-inline" for="ap-doctor">Doctor <select id="ap-doctor"></select></label>
+        <label class="field-inline" for="ap-status" id="ap-status-wrap">Status <select id="ap-status"><option value="all">All</option><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+        <div class="seg" role="group" aria-label="Date range" id="ap-range">
+          <button type="button" data-range="upcoming">Upcoming</button><button type="button" data-range="today">Today</button><button type="button" data-range="past">Past</button><button type="button" data-range="all">All</button>
+        </div>
+      </div>
+      <div class="panel flush"><div id="ap-table"></div></div>
+    </section>
+
+    <section id="sv-patients" class="staff-body" hidden>
+      <div class="page-head"><div><h1>Patients</h1><p class="muted" id="pt-count"></p></div><button type="button" class="btn btn-secondary" data-add-patient><span data-icon="plus"></span>Add patient</button></div>
+      <div class="toolbar"><label class="search"><span class="sr">Search patients</span><span data-icon="search"></span><input id="pt-q" type="search" placeholder="Search name, MRN, phone or email" autocomplete="off"></label></div>
+      <div class="panel flush"><div id="pt-table"></div></div>
+    </section>
+
+    <section id="sv-doctors" class="staff-body" hidden>
+      <div class="page-head"><div><h1>Doctors</h1><p class="muted">Clinic days, today's workload and the next open time for each doctor.</p></div></div>
+      <ul class="doc-list" id="doc-list"></ul>
+    </section>
+  </div>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<div id="tip" class="tip" role="tooltip" hidden></div>
+
+<dialog id="dlg-book" aria-labelledby="bk-title">
+  <form id="bk-form" class="dlg" novalidate>
+    <div class="dlg-head"><h2 id="bk-title">New booking</h2><button type="button" class="icon-btn" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+    <div class="dlg-body">
+      <div class="field">
+        <div class="label-row"><label for="bk-patient">Patient</label><button type="button" class="link small" id="bk-new-patient">New patient</button></div>
+        <select id="bk-patient"></select>
+      </div>
+      <div class="field"><label for="bk-doctor">Doctor</label><select id="bk-doctor"></select><p class="hint" id="bk-doc-hint"></p></div>
+      <div class="field-row">
+        <div class="field"><label for="bk-date">Date</label><input id="bk-date" type="date"></div>
+        <div class="field"><label for="bk-type">Visit type</label><select id="bk-type"></select></div>
+      </div>
+      <fieldset class="field"><legend>Time <span class="opt" id="bk-slot-count"></span></legend><div id="bk-slots" class="slot-grid"></div></fieldset>
+      <div class="field"><label for="bk-reason">Reason for visit <span class="opt">(optional)</span></label><textarea id="bk-reason" rows="2" maxlength="300" placeholder="For example: knee pain for two weeks"></textarea></div>
+      <p class="form-error" id="bk-error" role="alert" hidden></p>
+    </div>
+    <div class="dlg-foot"><button type="button" class="btn btn-ghost" data-close>Cancel</button><button type="submit" class="btn btn-primary">Confirm booking</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-patient" aria-labelledby="pt-title">
+  <form id="pt-form" class="dlg" novalidate>
+    <div class="dlg-head"><h2 id="pt-title">Add patient</h2><button type="button" class="icon-btn" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+    <div class="dlg-body">
+      <div class="field"><label for="pt-name">Full name</label><input id="pt-name" maxlength="100" autocomplete="off" placeholder="For example: Jordan Lee"></div>
+      <div class="field-row">
+        <div class="field"><label for="pt-dob">Date of birth</label><input id="pt-dob" type="date"></div>
+        <div class="field"><label for="pt-phone">Phone</label><input id="pt-phone" type="tel" maxlength="20" autocomplete="off" placeholder="416-555-0100"></div>
+      </div>
+      <div class="field"><label for="pt-email">Email <span class="opt">(optional)</span></label><input id="pt-email" type="email" maxlength="120" autocomplete="off" placeholder="name@example.com"></div>
+      <div class="field"><label for="pt-card">Health card number <span class="opt">(optional)</span></label><input id="pt-card" maxlength="20" autocomplete="off" placeholder="1234-567-890-AB"></div>
+      <p class="form-error" id="pt-error" role="alert" hidden></p>
+    </div>
+    <div class="dlg-foot"><button type="button" class="btn btn-ghost" data-close>Cancel</button><button type="submit" class="btn btn-primary">Add patient</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-profile" class="drawer" aria-labelledby="pf-title">
+  <div class="dlg">
+    <div class="dlg-head"><div class="prof-head"><span class="avatar av-lg" id="pf-init"></span><div><h2 id="pf-title">Patient</h2><p class="muted small mono" id="pf-mrn"></p></div></div><button type="button" class="icon-btn" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+    <div class="tabs-row" role="tablist" aria-label="Patient record">
+      <button type="button" class="tab" role="tab" id="tab-overview" data-tab="overview" aria-controls="pf-body">Overview</button>
+      <button type="button" class="tab" role="tab" id="tab-visits" data-tab="visits" aria-controls="pf-body">Appointments</button>
+    </div>
+    <div class="dlg-body" id="pf-body" role="tabpanel"></div>
+    <div class="dlg-foot" id="pf-foot"></div>
+  </div>
+</dialog>
+
+<script src="app.js" defer></script>
+</body>
+</html>
