@@ -1,4 +1,4 @@
-"""MediBook doctor service: doctors, departments and clinic schedules."""
+"""MediBook doctor service: doctors, departments, clinic schedules and open slots."""
 import logging
 import os
 from contextlib import asynccontextmanager
