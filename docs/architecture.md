@@ -4,6 +4,10 @@ This page explains how MediBook is split into services, how a request reaches th
 
 ## AWS overview
 
+![MediBook on AWS: GitHub Actions, the regional AWS services, a VPC across two availability zones, the EKS cluster with its namespaces, and RDS](images/aws-architecture.png)
+
+Editable source: [diagrams/aws-architecture.drawio](diagrams/aws-architecture.drawio). The diagram below shows the request paths and the ALB routes in more detail.
+
 ```mermaid
 flowchart TB
     user["Browser"] -->|"HTTP 80"| alb

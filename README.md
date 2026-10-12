@@ -18,39 +18,9 @@ The site is HTTP only: there is no domain, so there is no TLS certificate. Enter
 
 ## Architecture on AWS
 
-```mermaid
-flowchart LR
-    user["Browser"] -->|"HTTP 80"| alb["Application Load Balancer"]
-    subgraph aws["AWS ca-central-1"]
-        alb
-        subgraph eks["EKS 1.35, 2 x m7i-flex.large"]
-            fe["frontend"]
-            auth["auth-service"]
-            doc["doctor-service"]
-            pat["patient-service"]
-            appt["appointment-service"]
-            plat["Argo CD, External Secrets, Prometheus, Grafana, Fluent Bit"]
-        end
-        rds[("RDS PostgreSQL 16: doctors, patients, appointments")]
-        sm["Secrets Manager"]
-        ecr["ECR"]
-        cw["CloudWatch logs and alarms"]
-    end
-    alb --> fe
-    alb --> auth
-    alb --> doc
-    alb --> pat
-    alb --> appt
-    appt --> doc
-    appt --> pat
-    doc --> rds
-    pat --> rds
-    appt --> rds
-    sm -.->|"External Secrets"| plat
-    plat -.-> cw
-    gha["GitHub Actions"] -->|"OIDC, push images"| ecr
-    repo["Git: k8s folder"] -.->|"Argo CD sync"| plat
-```
+![MediBook on AWS: GitHub Actions, the regional AWS services, a VPC across two availability zones, the EKS cluster with its namespaces, and RDS](docs/images/aws-architecture.png)
+
+The editable source is [docs/diagrams/aws-architecture.drawio](docs/diagrams/aws-architecture.drawio); open it in draw.io (app.diagrams.net).
 
 The ALB uses the same path rules as the local Nginx and never routes `/internal`. RDS is private and accepts connections only from the cluster. Details: [docs/architecture.md](docs/architecture.md).
 
