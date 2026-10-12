@@ -54,6 +54,17 @@ The `dev` environment has one required reviewer, allows only `main`, and adminis
 
 Pull requests run test, build and scan, but never push or commit. Runs are grouped per Git ref. A newer push to a pull request cancels its older run; runs on `main` are never cancelled.
 
+This was checked with a test pull request (2026-10-12, closed without merging) that changed one line in doctor-service and one Terraform variable description:
+
+| Workflow | Result |
+|---|---|
+| Service CI | Only `doctor-service` ran: 7 tests passed, the image was built, and Trivy found no fixable HIGH or CRITICAL issue. The AWS sign-in, ECR login, push and artifact steps and the tag update job were skipped, and the image tag does not exist in ECR |
+| Terraform CI | Format, validate, TFLint and Checkov (259 passed, 0 failed, 28 skipped) passed. The plan signed in with `tf-plan` through the `pull_request` subject and reported no changes |
+
+![Checks on the test pull request: four passed, the tag update skipped](images/pr-checks.jpg)
+
+![The doctor-service job on the pull request: test, build and scan ran; the AWS and push steps were skipped](images/pr-service-ci-skipped-push.jpg)
+
 ## Change detection
 
 Only the services whose files changed are built:
