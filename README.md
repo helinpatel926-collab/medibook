@@ -172,4 +172,3 @@ medibook/
 | [docs/costs.md](docs/costs.md) | What the AWS environment costs to run |
 | [docs/cleanup.md](docs/cleanup.md) | Tearing the environment down in the right order |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Common problems and their fixes |
-| [docs/interview-guide.md](docs/interview-guide.md) | How to walk through the project and the design questions it answers |
