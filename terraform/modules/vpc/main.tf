@@ -8,6 +8,7 @@ locals {
 }
 
 resource "aws_vpc" "this" {
+  # checkov:skip=CKV2_AWS_11:Flow logs cost extra in dev; production would enable them
   cidr_block           = var.cidr
   enable_dns_support   = true
   enable_dns_hostnames = true

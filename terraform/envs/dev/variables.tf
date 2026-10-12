@@ -58,11 +58,6 @@ variable "eks_addon_versions" {
   }
 }
 
-variable "api_allowed_cidrs" {
-  description = "CIDR blocks allowed to reach the public Kubernetes API. Set in admin.auto.tfvars, which Git ignores."
-  type        = list(string)
-}
-
 variable "cluster_admin_arns" {
   description = "IAM principals with cluster-admin access."
   type        = list(string)

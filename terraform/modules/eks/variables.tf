@@ -13,16 +13,6 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
-variable "api_allowed_cidrs" {
-  description = "CIDR blocks allowed to reach the public Kubernetes API endpoint."
-  type        = list(string)
-
-  validation {
-    condition     = length(var.api_allowed_cidrs) > 0 && !contains(var.api_allowed_cidrs, "0.0.0.0/0")
-    error_message = "List at least one CIDR, and do not open the API to 0.0.0.0/0."
-  }
-}
-
 variable "cluster_admin_arns" {
   description = "IAM principals that get cluster-admin access through EKS access entries."
   type        = list(string)

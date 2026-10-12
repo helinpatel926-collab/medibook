@@ -9,6 +9,8 @@ resource "random_password" "db" {
 }
 
 resource "aws_secretsmanager_secret" "db" {
+  # checkov:skip=CKV_AWS_149:Encrypted with the Secrets Manager service key; a customer managed KMS key costs extra
+  # checkov:skip=CKV2_AWS_57:No rotation function in dev; documented as a known limitation
   for_each = var.service_databases
 
   name                    = "${var.prefix}/${each.key}/db"
@@ -35,6 +37,8 @@ resource "random_password" "jwt" {
 }
 
 resource "aws_secretsmanager_secret" "jwt" {
+  # checkov:skip=CKV_AWS_149:Encrypted with the Secrets Manager service key; a customer managed KMS key costs extra
+  # checkov:skip=CKV2_AWS_57:No rotation function in dev; documented as a known limitation
   name                    = "${var.prefix}/jwt"
   description             = "Key that signs and verifies staff session tokens"
   recovery_window_in_days = var.recovery_window_days
@@ -51,6 +55,8 @@ resource "random_password" "staff" {
 }
 
 resource "aws_secretsmanager_secret" "staff" {
+  # checkov:skip=CKV_AWS_149:Encrypted with the Secrets Manager service key; a customer managed KMS key costs extra
+  # checkov:skip=CKV2_AWS_57:No rotation function in dev; documented as a known limitation
   name                    = "${var.prefix}/staff-login"
   description             = "Front-desk staff sign-in"
   recovery_window_in_days = var.recovery_window_days

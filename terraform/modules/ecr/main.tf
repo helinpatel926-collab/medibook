@@ -1,4 +1,5 @@
 resource "aws_ecr_repository" "this" {
+  # checkov:skip=CKV_AWS_136:Encrypted with AES-256; a customer managed KMS key costs extra
   for_each = toset(var.repositories)
 
   name                 = each.value

@@ -8,6 +8,10 @@ locals {
 }
 
 resource "aws_s3_bucket" "state" {
+  # checkov:skip=CKV_AWS_144:Single-region project; versioning protects the state
+  # checkov:skip=CKV_AWS_145:Encrypted with SSE-S3; a KMS key costs extra
+  # checkov:skip=CKV_AWS_18:Access logging needs a second bucket; only Terraform uses this one
+  # checkov:skip=CKV2_AWS_62:Nothing consumes bucket events
   bucket = local.bucket_name
 
   lifecycle {

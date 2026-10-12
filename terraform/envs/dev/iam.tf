@@ -61,6 +61,8 @@ module "external_secrets_irsa" {
 }
 
 resource "aws_cloudwatch_log_group" "services" {
+  # checkov:skip=CKV_AWS_338:Dev logs are kept for 3 days
+  # checkov:skip=CKV_AWS_158:Encrypted with the CloudWatch Logs service key; a customer managed KMS key costs extra
   name              = "/${var.project}/${var.environment}/services"
   retention_in_days = var.service_log_retention_days
 }

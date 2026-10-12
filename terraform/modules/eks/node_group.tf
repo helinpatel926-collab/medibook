@@ -31,9 +31,10 @@ resource "aws_launch_template" "nodes" {
   update_default_version = true
 
   metadata_options {
-    http_endpoint               = "enabled"
-    http_tokens                 = "required"
-    http_put_response_hop_limit = 2
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+    # Pods cannot reach the node's credentials; they get AWS access through IRSA only.
+    http_put_response_hop_limit = 1
   }
 
   block_device_mappings {

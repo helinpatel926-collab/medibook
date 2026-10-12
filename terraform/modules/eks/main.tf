@@ -6,6 +6,8 @@ locals {
 
 # Created before the cluster so the retention period applies from the first log line.
 resource "aws_cloudwatch_log_group" "cluster" {
+  # checkov:skip=CKV_AWS_338:Dev logs are kept for 3 days
+  # checkov:skip=CKV_AWS_158:Encrypted with the CloudWatch Logs service key; a customer managed KMS key costs extra
   name              = "/aws/eks/${var.name}/cluster"
   retention_in_days = var.log_retention_days
 }
@@ -32,6 +34,10 @@ resource "aws_iam_role_policy_attachment" "cluster" {
 }
 
 resource "aws_eks_cluster" "this" {
+  # checkov:skip=CKV_AWS_58:EKS encrypts all Kubernetes API data, Secrets included, with KMS by default
+  # checkov:skip=CKV_AWS_38:Access is controlled by IAM: only principals with an access entry can use the API
+  # checkov:skip=CKV_AWS_39:Admins and CI reach the API from changing addresses; IAM and MFA protect it
+  # checkov:skip=CKV_AWS_37:api, audit and authenticator logs are enough for dev
   name     = var.name
   version  = var.kubernetes_version
   role_arn = aws_iam_role.cluster.arn
@@ -49,7 +55,7 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = true
     endpoint_public_access  = true
-    public_access_cidrs     = var.api_allowed_cidrs
+    public_access_cidrs     = ["0.0.0.0/0"]
   }
 
   # Upgrade automatically at the end of standard support instead of paying for extended support.

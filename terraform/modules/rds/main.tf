@@ -32,6 +32,13 @@ resource "aws_vpc_security_group_ingress_rule" "postgres" {
 }
 
 resource "aws_db_instance" "this" {
+  # checkov:skip=CKV_AWS_157:The Free plan offers Single-AZ only
+  # checkov:skip=CKV_AWS_293:Dev database; the destroy and rebuild test must be able to remove it
+  # checkov:skip=CKV_AWS_118:Basic CloudWatch metrics are enough for dev
+  # checkov:skip=CKV_AWS_353:Basic CloudWatch metrics are enough for dev
+  # checkov:skip=CKV_AWS_129:Logs are readable in the RDS console; exporting them costs extra
+  # checkov:skip=CKV2_AWS_30:Query logs could contain patient data
+  # checkov:skip=CKV_AWS_161:Services sign in with passwords kept in Secrets Manager
   identifier     = var.name
   engine         = "postgres"
   engine_version = var.engine_version

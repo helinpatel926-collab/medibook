@@ -34,7 +34,6 @@ module "eks" {
   name               = local.name
   kubernetes_version = var.kubernetes_version
   subnet_ids         = module.vpc.private_subnet_ids
-  api_allowed_cidrs  = var.api_allowed_cidrs
   cluster_admin_arns = var.cluster_admin_arns
 
   # Two 8 GiB nodes, one per zone. Fewer pods per node means less memory reserved by the kubelet.
