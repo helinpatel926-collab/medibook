@@ -42,6 +42,8 @@ All jobs run on GitHub-hosted `ubuntu-24.04`. The default token permission is `c
 
 Plan and apply share the concurrency group `terraform-dev` and never cancel each other. The S3 lock file protects the state as well.
 
+The `dev` environment has one required reviewer, allows only `main`, and administrators cannot bypass it. The first run (2026-10-12) waited for approval, then signed in with `tf-apply`, found 0 resources to destroy and finished with `Apply complete! Resources: 0 added, 0 changed, 0 destroyed.`
+
 ### Service CI
 
 | Job | Steps |
