@@ -10,4 +10,4 @@ resources:
 images:
   - name: medibook-doctor-service
     newName: 710590320983.dkr.ecr.ca-central-1.amazonaws.com/medibook-doctor-service
-    newTag: "4519b8e"
+    newTag: "0000000"
