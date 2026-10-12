@@ -100,6 +100,11 @@ output "service_log_group" {
   value       = aws_cloudwatch_log_group.services.name
 }
 
+output "alarm_topic_arn" {
+  description = "SNS topic that receives the CloudWatch alarms."
+  value       = aws_sns_topic.alarms.arn
+}
+
 output "kubeconfig_command" {
   description = "Command that adds this cluster to the local kubeconfig."
   value       = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"

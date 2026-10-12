@@ -94,6 +94,12 @@ variable "service_log_retention_days" {
   default     = 3
 }
 
+variable "alarm_email" {
+  description = "Email address that receives CloudWatch alarm notifications. AWS sends a confirmation link first. Null means no subscription."
+  type        = string
+  default     = null
+}
+
 variable "service_names" {
   description = "Images built by the project. One ECR repository is created for each."
   type        = list(string)
