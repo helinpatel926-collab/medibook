@@ -1,0 +1,97 @@
+# One ServiceMonitor per FastAPI service. The relabeling sets the "service" label
+# to the app.kubernetes.io/name value, which the MediBook dashboard groups by.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: auth-service
+  labels:
+    app.kubernetes.io/name: auth-service
+    app.kubernetes.io/part-of: medibook
+spec:
+  namespaceSelector:
+    matchNames:
+      - medibook
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      relabelings:
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_service_label_app_kubernetes_io_name
+          targetLabel: service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: doctor-service
+  labels:
+    app.kubernetes.io/name: doctor-service
+    app.kubernetes.io/part-of: medibook
+spec:
+  namespaceSelector:
+    matchNames:
+      - medibook
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: doctor-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      relabelings:
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_service_label_app_kubernetes_io_name
+          targetLabel: service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: patient-service
+  labels:
+    app.kubernetes.io/name: patient-service
+    app.kubernetes.io/part-of: medibook
+spec:
+  namespaceSelector:
+    matchNames:
+      - medibook
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: patient-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      relabelings:
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_service_label_app_kubernetes_io_name
+          targetLabel: service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: appointment-service
+  labels:
+    app.kubernetes.io/name: appointment-service
+    app.kubernetes.io/part-of: medibook
+spec:
+  namespaceSelector:
+    matchNames:
+      - medibook
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: appointment-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      relabelings:
+        - action: replace
+          sourceLabels:
+            - __meta_kubernetes_service_label_app_kubernetes_io_name
+          targetLabel: service
