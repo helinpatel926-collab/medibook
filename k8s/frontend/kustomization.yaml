@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The service-ci workflow sets newTag after it pushes a new image.
+images:
+  - name: medibook-frontend
+    newName: 710590320983.dkr.ecr.ca-central-1.amazonaws.com/medibook-frontend
+    newTag: "none"

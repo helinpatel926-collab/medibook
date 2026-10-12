@@ -1,0 +1,68 @@
+name: Terraform apply
+
+# Run by hand from main after reviewing the plan of the same commit in Terraform CI.
+# The job waits for a reviewer's approval in the dev environment before it gets AWS access.
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_destroy:
+        description: Allow a plan that destroys resources
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ca-central-1
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  TERRAFORM_VERSION: 1.16.5
+
+jobs:
+  apply:
+    name: Apply (dev)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: terraform-dev
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: terraform/envs/dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::710590320983:role/medibook-dev-github-tf-apply
+          role-session-name: terraform-apply-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init
+
+      - name: Plan
+        env:
+          ALLOW_DESTROY: ${{ inputs.allow_destroy }}
+        run: |
+          terraform plan -lock-timeout=5m -no-color -out=dev.tfplan
+          destroys=$(terraform show -json dev.tfplan | jq '[.resource_changes[] | select(.change.actions | index("delete"))] | length')
+          echo "Resources to destroy or replace: $destroys"
+          if [ "$destroys" -gt 0 ] && [ "$ALLOW_DESTROY" != "true" ]; then
+            echo "::error::The plan destroys $destroys resource(s). Run again with allow_destroy if that is intended."
+            exit 1
+          fi
+
+      - name: Apply
+        run: terraform apply -lock-timeout=5m -no-color dev.tfplan

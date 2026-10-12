@@ -1,0 +1,233 @@
+name: Service CI
+
+# Builds only the services whose files changed. Pull requests test, build and scan.
+# Pushes to main also push the image to ECR and record its tag in k8s/<service>/.
+
+on:
+  pull_request:
+    paths:
+      - "services/**"
+      - "frontend/**"
+      - "db/init-test/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".github/workflows/service-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "services/**"
+      - "frontend/**"
+      - "db/init-test/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".github/workflows/service-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: service-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  AWS_REGION: ca-central-1
+  TRIVY_VERSION: 0.74.0
+  TRIVY_SHA256: 2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a
+
+jobs:
+  changes:
+    name: Find changed services
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      services: ${{ steps.list.outputs.services }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          filters: |
+            auth-service:
+              - "services/auth-service/**"
+              - "docker-compose.yml"
+              - ".env.example"
+              - ".github/workflows/service-ci.yml"
+            doctor-service:
+              - "services/doctor-service/**"
+              - "db/init-test/**"
+              - "docker-compose.yml"
+              - ".env.example"
+              - ".github/workflows/service-ci.yml"
+            patient-service:
+              - "services/patient-service/**"
+              - "db/init-test/**"
+              - "docker-compose.yml"
+              - ".env.example"
+              - ".github/workflows/service-ci.yml"
+            appointment-service:
+              - "services/appointment-service/**"
+              - "db/init-test/**"
+              - "docker-compose.yml"
+              - ".env.example"
+              - ".github/workflows/service-ci.yml"
+            frontend:
+              - "frontend/**"
+              - ".github/workflows/service-ci.yml"
+
+      - name: List services to build
+        id: list
+        env:
+          CHANGED: ${{ steps.filter.outputs.changes }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            services='["auth-service","doctor-service","patient-service","appointment-service","frontend"]'
+          else
+            services="${CHANGED:-[]}"
+          fi
+          echo "services=$services" >> "$GITHUB_OUTPUT"
+          echo "Services to build: $services"
+
+  build:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.services != '[]'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.services) }}
+    env:
+      SERVICE: ${{ matrix.service }}
+      PUBLISH: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Image details
+        run: |
+          if [ "$SERVICE" = "frontend" ]; then
+            echo "CONTEXT=frontend" >> "$GITHUB_ENV"
+            echo "TARGET=" >> "$GITHUB_ENV"
+          else
+            echo "CONTEXT=services/$SERVICE" >> "$GITHUB_ENV"
+            echo "TARGET=runtime" >> "$GITHUB_ENV"
+          fi
+          echo "TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Test
+        if: matrix.service != 'frontend'
+        run: |
+          cp .env.example .env
+          docker compose --profile test run --rm --build "${SERVICE%-service}-tests"
+
+      - name: Build
+        run: |
+          if [ -n "$TARGET" ]; then
+            docker build --target "$TARGET" -t "medibook-$SERVICE:$TAG" "$CONTEXT"
+          else
+            docker build -t "medibook-$SERVICE:$TAG" "$CONTEXT"
+          fi
+
+      - name: Install Trivy
+        run: |
+          curl -sSfL -o /tmp/trivy.tar.gz \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  /tmp/trivy.tar.gz" | sha256sum -c -
+          sudo tar -xzf /tmp/trivy.tar.gz -C /usr/local/bin trivy
+          trivy --version
+
+      - name: Scan
+        run: trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress "medibook-$SERVICE:$TAG"
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        if: env.PUBLISH == 'true'
+        with:
+          role-to-assume: arn:aws:iam::710590320983:role/medibook-dev-github-ecr-push
+          role-session-name: ecr-push-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+        if: env.PUBLISH == 'true'
+        id: ecr
+
+      - name: Push
+        if: env.PUBLISH == 'true'
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          repo="medibook-$SERVICE"
+          # Tags are immutable, so a re-run of the same commit keeps the image already pushed.
+          if aws ecr describe-images --repository-name "$repo" --image-ids imageTag="$TAG" >/dev/null 2>&1; then
+            echo "$repo:$TAG is already in ECR"
+          else
+            docker tag "medibook-$SERVICE:$TAG" "$REGISTRY/$repo:$TAG"
+            docker push "$REGISTRY/$repo:$TAG"
+          fi
+          mkdir -p built
+          echo "$TAG" > "built/$SERVICE"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: env.PUBLISH == 'true'
+        with:
+          name: built-${{ matrix.service }}
+          path: built/
+          retention-days: 1
+
+  update-manifests:
+    name: Update image tags in k8s/
+    needs: [changes, build]
+    # Runs even if one service failed, so the others still deploy.
+    if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.changes.outputs.services != '[]'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: update-manifests
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          pattern: built-*
+          merge-multiple: true
+          path: built
+
+      - name: Commit the new tags
+        run: |
+          shopt -s nullglob
+          files=(built/*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No new images"
+            exit 0
+          fi
+          for f in "${files[@]}"; do
+            svc=$(basename "$f")
+            SVC="$svc" TAG="$(cat "$f")" yq -i \
+              '(.images[] | select(.name == "medibook-" + strenv(SVC)) | .newTag) = strenv(TAG) | (.images[].newTag) style="double"' \
+              "k8s/$svc/kustomization.yaml"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add k8s
+          if git diff --cached --quiet; then
+            echo "Tags already up to date"
+            exit 0
+          fi
+          names=$(for f in "${files[@]}"; do basename "$f"; done | paste -sd ' ')
+          git commit -m "Deploy $names at ${GITHUB_SHA::7} [skip ci]"
+          for _ in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
