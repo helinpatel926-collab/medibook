@@ -161,7 +161,7 @@ The ALB belongs to the load balancer controller, not to Terraform. So the three 
 
 ![The six MediBook alarms in CloudWatch, all OK](images/cloudwatch-alarms.jpg)
 
-**Email notifications.** Alarm and recovery notifications go to the SNS topic `medibook-dev-alarms`. Nobody receives them until `alarm_email` is set:
+**Email notifications.** Alarm and recovery notifications go to the SNS topic `medibook-dev-alarms`. They reach an email address once it is subscribed to the topic, either through `alarm_email`:
 
 ```bash
 cd terraform/envs/dev
@@ -170,6 +170,17 @@ terraform apply dev.tfplan
 ```
 
 AWS then sends a confirmation email, and its link must be clicked once. Terraform CI plans with the default values, so an address passed only on the command line appears there as a subscription to delete. To keep the two in step, set the default of `alarm_email` in `terraform/envs/dev/variables.tf` instead.
+
+In this environment the subscriber was added with the AWS CLI instead, so no personal address is stored in this public repository or in the Terraform state, and Terraform CI plans stay unchanged:
+
+```bash
+aws sns subscribe --region ca-central-1 --protocol email \
+  --topic-arn "$(terraform output -raw alarm_topic_arn)" --notification-endpoint <address>
+# after clicking the confirmation link, send a test notification:
+aws cloudwatch set-alarm-state --alarm-name medibook-dev-rds-cpu --state-value ALARM --state-reason "Test notification"
+```
+
+The test alarm returns to OK at the next evaluation, which sends a second email.
 
 ```bash
 aws cloudwatch describe-alarms --alarm-name-prefix medibook-dev \
