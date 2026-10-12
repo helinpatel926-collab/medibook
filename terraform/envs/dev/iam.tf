@@ -44,7 +44,7 @@ data "aws_iam_policy_document" "external_secrets" {
       "secretsmanager:GetSecretValue",
       "secretsmanager:ListSecretVersionIds",
     ]
-    # The application secrets, plus the database admin login for the one-time db-init job.
+    # The application secrets, plus the database admin login for the db-init job.
     resources = concat(module.secrets.secret_arns, [module.rds.master_user_secret_arn])
   }
 }

@@ -1,5 +1,5 @@
 # One PostgreSQL instance for all services. Each service gets its own database and login,
-# created later by a one-time Kubernetes job, so no service can read another service's data.
+# created by the db-init job in k8s/platform, so no service can read another service's data.
 
 resource "aws_db_subnet_group" "this" {
   name       = var.name
