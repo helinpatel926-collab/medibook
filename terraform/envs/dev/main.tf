@@ -27,3 +27,28 @@ module "vpc" {
 
   single_nat_gateway = true
 }
+
+module "eks" {
+  source = "../../modules/eks"
+
+  name               = local.name
+  kubernetes_version = var.kubernetes_version
+  subnet_ids         = module.vpc.private_subnet_ids
+  api_allowed_cidrs  = var.api_allowed_cidrs
+  cluster_admin_arns = var.cluster_admin_arns
+
+  # Two 8 GiB nodes, one per zone. Fewer pods per node means less memory reserved by the kubelet.
+  node_instance_types = [var.node_instance_type]
+  node_desired_size   = 2
+  node_min_size       = 2
+  node_max_size       = 3
+  max_pods            = 50
+
+  addon_versions = var.eks_addon_versions
+}
+
+module "ecr" {
+  source = "../../modules/ecr"
+
+  repositories = [for s in var.service_names : "${var.project}-${s}"]
+}

@@ -29,7 +29,48 @@ variable "az_count" {
 }
 
 variable "node_instance_type" {
-  description = "EC2 instance type of the EKS nodes. Only zones that offer it are used."
+  description = "EC2 instance type of the EKS nodes. Only zones that offer it are used. The Free plan only launches Free Tier eligible types, so t3.medium is not allowed."
   type        = string
-  default     = "t3.medium"
+  default     = "m7i-flex.large"
+}
+
+variable "kubernetes_version" {
+  description = "EKS Kubernetes version. One behind the newest default, and within one minor version of the local kubectl."
+  type        = string
+  default     = "1.35"
+}
+
+variable "eks_addon_versions" {
+  description = "Pinned EKS add-on versions (the AWS default versions for the Kubernetes version above)."
+  type = object({
+    vpc_cni        = string
+    kube_proxy     = string
+    coredns        = string
+    ebs_csi_driver = string
+    metrics_server = string
+  })
+  default = {
+    vpc_cni        = "v1.22.4-eksbuild.3"
+    kube_proxy     = "v1.35.3-eksbuild.29"
+    coredns        = "v1.13.2-eksbuild.50"
+    ebs_csi_driver = "v1.66.0-eksbuild.1"
+    metrics_server = "v0.9.0-eksbuild.11"
+  }
+}
+
+variable "api_allowed_cidrs" {
+  description = "CIDR blocks allowed to reach the public Kubernetes API. Set in admin.auto.tfvars, which Git ignores."
+  type        = list(string)
+}
+
+variable "cluster_admin_arns" {
+  description = "IAM principals with cluster-admin access."
+  type        = list(string)
+  default     = ["arn:aws:iam::710590320983:user/medibook-admin"]
+}
+
+variable "service_names" {
+  description = "Images built by the project. One ECR repository is created for each."
+  type        = list(string)
+  default     = ["auth-service", "doctor-service", "patient-service", "appointment-service", "frontend"]
 }
