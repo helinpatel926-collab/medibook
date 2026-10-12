@@ -20,7 +20,9 @@ spec:
         # Set explicitly because pods cannot reach the instance metadata service.
         clusterName: medibook-dev
         region: ca-central-1
-        vpcId: vpc-054173baffc68a8f2
+        # Found by tag rather than ID, so a rebuilt VPC needs no change here.
+        vpcTags:
+          Name: medibook-dev
         # Two replicas: the pod webhook for readiness gates must answer whenever pods are created.
         replicaCount: 2
         serviceAccount:
