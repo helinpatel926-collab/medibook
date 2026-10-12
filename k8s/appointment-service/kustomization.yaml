@@ -4,4 +4,4 @@ kind: Kustomization
 images:
   - name: medibook-appointment-service
     newName: 710590320983.dkr.ecr.ca-central-1.amazonaws.com/medibook-appointment-service
-    newTag: "none"
+    newTag: "4519b8e"
