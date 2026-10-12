@@ -52,3 +52,29 @@ module "ecr" {
 
   repositories = [for s in var.service_names : "${var.project}-${s}"]
 }
+
+module "rds" {
+  source = "../../modules/rds"
+
+  name                       = local.name
+  vpc_id                     = module.vpc.vpc_id
+  subnet_ids                 = module.vpc.database_subnet_ids
+  allowed_security_group_ids = [module.eks.cluster_security_group_id]
+  engine_version             = var.db_engine_version
+}
+
+module "secrets" {
+  source = "../../modules/secrets"
+
+  prefix  = "${var.project}/${var.environment}"
+  db_host = module.rds.address
+  db_port = module.rds.port
+
+  service_databases = {
+    doctor-service      = { database = "doctors", username = "doctor_service" }
+    patient-service     = { database = "patients", username = "patient_service" }
+    appointment-service = { database = "appointments", username = "appointment_service" }
+  }
+
+  staff_email = var.staff_email
+}

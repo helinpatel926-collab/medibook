@@ -69,6 +69,18 @@ variable "cluster_admin_arns" {
   default     = ["arn:aws:iam::710590320983:user/medibook-admin"]
 }
 
+variable "db_engine_version" {
+  description = "PostgreSQL major version, the same as the local Docker Compose image. AWS picks the latest minor version and applies minor upgrades."
+  type        = string
+  default     = "16"
+}
+
+variable "staff_email" {
+  description = "Email of the front-desk staff sign-in. The password is generated and kept in Secrets Manager."
+  type        = string
+  default     = "frontdesk@medibook.test"
+}
+
 variable "service_names" {
   description = "Images built by the project. One ECR repository is created for each."
   type        = list(string)

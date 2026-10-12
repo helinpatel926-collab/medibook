@@ -58,6 +58,25 @@ output "ecr_repository_urls" {
   value       = module.ecr.repository_urls
 }
 
+output "db_address" {
+  description = "Host name of the PostgreSQL instance."
+  value       = module.rds.address
+}
+
+output "db_master_secret_arn" {
+  description = "Secret with the database administrator login (managed by RDS)."
+  value       = module.rds.master_user_secret_arn
+}
+
+output "app_secret_arns" {
+  description = "Application secrets in Secrets Manager."
+  value = {
+    databases = module.secrets.db_secret_arns
+    jwt       = module.secrets.jwt_secret_arn
+    staff     = module.secrets.staff_secret_arn
+  }
+}
+
 output "kubeconfig_command" {
   description = "Command that adds this cluster to the local kubeconfig."
   value       = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
