@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-appointment-to-backends
+  namespace: medibook
+  labels:
+    app.kubernetes.io/part-of: medibook
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - doctor-service
+          - patient-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: appointment-service
+      ports:
+        - protocol: TCP
+          port: 8000

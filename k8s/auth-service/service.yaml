@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: medibook
+  labels:
+    app.kubernetes.io/name: auth-service
+    app.kubernetes.io/part-of: medibook
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /ready
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: auth-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP

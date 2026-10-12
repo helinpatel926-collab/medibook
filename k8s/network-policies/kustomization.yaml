@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: medibook
+# Ingress-only policies; egress is left open.
+# Kubelet probes need no rule: VPC CNI network policy always admits the node's own IP.
+resources:
+  - default-deny-ingress.yaml
+  - allow-alb-to-services.yaml
+  - allow-alb-to-frontend.yaml
+  - allow-appointment-to-backends.yaml
+  - allow-frontend-to-services.yaml
+  - allow-prometheus-to-services.yaml

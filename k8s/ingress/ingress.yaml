@@ -1,0 +1,80 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: medibook
+  namespace: medibook
+  labels:
+    app.kubernetes.io/name: medibook
+    app.kubernetes.io/part-of: medibook
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/load-balancer-name: medibook-dev
+    # Health check paths are set per Service (/ready for the APIs, / for the frontend).
+    alb.ingress.kubernetes.io/success-codes: "200"
+    alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=30
+spec:
+  ingressClassName: alb
+  # Mirrors frontend/nginx.conf. Prefix matches whole path segments, and the controller
+  # orders Prefix paths longest first, so each specific path stays ahead of its parent.
+  # /internal is never routed to a service; it falls through to the frontend, which returns 404.
+  rules:
+    - http:
+        paths:
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  name: http
+          - path: /api/public/doctors
+            pathType: Prefix
+            backend:
+              service:
+                name: doctor-service
+                port:
+                  name: http
+          - path: /api/public/departments
+            pathType: Prefix
+            backend:
+              service:
+                name: doctor-service
+                port:
+                  name: http
+          - path: /api/public/slots
+            pathType: Prefix
+            backend:
+              service:
+                name: doctor-service
+                port:
+                  name: http
+          - path: /api/public
+            pathType: Prefix
+            backend:
+              service:
+                name: appointment-service
+                port:
+                  name: http
+          - path: /api/staff/patients
+            pathType: Prefix
+            backend:
+              service:
+                name: patient-service
+                port:
+                  name: http
+          - path: /api/staff
+            pathType: Prefix
+            backend:
+              service:
+                name: appointment-service
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  name: http

@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-load-balancer-controller
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://aws.github.io/eks-charts
+    chart: aws-load-balancer-controller
+    # Must match the IAM policy version in terraform/envs/dev/policies.
+    targetRevision: 3.5.0
+    helm:
+      releaseName: aws-load-balancer-controller
+      valuesObject:
+        # Set explicitly because pods cannot reach the instance metadata service.
+        clusterName: medibook-dev
+        region: ca-central-1
+        vpcId: vpc-054173baffc68a8f2
+        # Two replicas: the pod webhook for readiness gates must answer whenever pods are created.
+        replicaCount: 2
+        serviceAccount:
+          create: true
+          name: aws-load-balancer-controller
+          annotations:
+            eks.amazonaws.com/role-arn: arn:aws:iam::710590320983:role/medibook-dev-aws-load-balancer-controller
+        # Only Ingress (ALB) is used, so the Service webhook is not needed.
+        enableServiceMutatorWebhook: false
+        controllerConfig:
+          featureGates:
+            ALBGatewayAPI: false
+            NLBGatewayAPI: false
+            GatewayListenerSet: false
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  # The chart generates a new self-signed webhook certificate on every render.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: aws-load-balancer-tls
+      namespace: kube-system
+      jsonPointers:
+        - /data
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      name: aws-load-balancer-webhook
+      jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      name: aws-load-balancer-webhook
+      jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

@@ -1,0 +1,15 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: doctor-service
+  namespace: medibook
+  labels:
+    app.kubernetes.io/name: doctor-service
+    app.kubernetes.io/part-of: medibook
+spec:
+  minAvailable: 1
+  # Unready pods can still be evicted, so node drains are not blocked.
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: doctor-service
