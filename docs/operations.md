@@ -115,6 +115,8 @@ kubectl get secret grafana-admin -n monitoring -o jsonpath='{.data.admin-passwor
 
 The local Docker Compose frontend also uses port 8080. If both are running, forward Argo CD to another local port, such as `8081:80`.
 
+![MediBook Overview dashboard in Grafana](images/grafana-overview.jpg)
+
 Grafana loads the **MediBook overview** dashboard from `k8s/monitoring/config/dashboards/`. It shows request rate, 5xx error rate and p95 latency per service, container restarts, CPU and memory per pod, and scrape targets up.
 
 ## Logs
