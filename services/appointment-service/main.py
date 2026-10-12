@@ -15,7 +15,7 @@ from auth import require_staff
 from rules import CLINIC_TZ, age_allowed, now_local
 from schemas import Appointment, AppointmentSeed, BookingResult, PublicBooking, StaffBooking, Status, StatusUpdate
 
-APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
+APP_VERSION = os.getenv("APP_VERSION", "1.1.0")
 SCAN_DAYS = 42
 SUMMARY_DAYS = 7
 
