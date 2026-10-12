@@ -9,6 +9,8 @@ resource "aws_eks_addon" "vpc_cni" {
   resolve_conflicts_on_update = "OVERWRITE"
 
   configuration_values = jsonencode({
+    # Without this, Kubernetes NetworkPolicies are accepted but not enforced.
+    enableNetworkPolicy = "true"
     env = {
       ENABLE_PREFIX_DELEGATION = "true"
       WARM_PREFIX_TARGET       = "1"

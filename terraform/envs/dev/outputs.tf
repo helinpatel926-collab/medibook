@@ -77,6 +77,29 @@ output "app_secret_arns" {
   }
 }
 
+output "github_role_arns" {
+  description = "Roles the GitHub Actions workflows assume."
+  value = {
+    tf_plan  = module.github_oidc.tf_plan_role_arn
+    tf_apply = module.github_oidc.tf_apply_role_arn
+    ecr_push = module.github_oidc.ecr_push_role_arn
+  }
+}
+
+output "irsa_role_arns" {
+  description = "IRSA roles, for the eks.amazonaws.com/role-arn annotation of each service account."
+  value = {
+    load_balancer_controller = module.load_balancer_controller_irsa.arn
+    external_secrets         = module.external_secrets_irsa.arn
+    fluent_bit               = module.fluent_bit_irsa.arn
+  }
+}
+
+output "service_log_group" {
+  description = "CloudWatch log group for the MediBook service containers."
+  value       = aws_cloudwatch_log_group.services.name
+}
+
 output "kubeconfig_command" {
   description = "Command that adds this cluster to the local kubeconfig."
   value       = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"

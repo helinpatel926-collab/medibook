@@ -81,6 +81,24 @@ variable "staff_email" {
   default     = "frontdesk@medibook.test"
 }
 
+variable "github_repository" {
+  description = "GitHub repository whose workflows may assume the CI roles, as owner/name."
+  type        = string
+  default     = "helinpatel926-collab/medibook"
+}
+
+variable "github_apply_environment" {
+  description = "GitHub environment, protected by required reviewers, whose jobs may run terraform apply."
+  type        = string
+  default     = "dev"
+}
+
+variable "service_log_retention_days" {
+  description = "Days to keep the container logs of the MediBook services in CloudWatch."
+  type        = number
+  default     = 3
+}
+
 variable "service_names" {
   description = "Images built by the project. One ECR repository is created for each."
   type        = list(string)
