@@ -77,9 +77,9 @@ variable "staff_email" {
 }
 
 variable "github_repository" {
-  description = "GitHub repository whose workflows may assume the CI roles, as owner/name."
+  description = "GitHub repository whose workflows may assume the CI roles, as GitHub writes it in the OIDC subject: owner@owner_id/name@repository_id. The IDs never change, so a deleted and recreated repository with the same name is not trusted."
   type        = string
-  default     = "helinpatel926-collab/medibook"
+  default     = "helinpatel926-collab@290570729/medibook@1413679607"
 }
 
 variable "github_apply_environment" {

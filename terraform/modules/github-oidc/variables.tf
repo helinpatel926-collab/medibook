@@ -4,7 +4,7 @@ variable "name" {
 }
 
 variable "repository" {
-  description = "GitHub repository allowed to assume the roles, as owner/name."
+  description = "GitHub repository allowed to assume the roles, as it appears in the OIDC subject (owner@owner_id/name@repository_id)."
   type        = string
 }
 
