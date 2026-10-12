@@ -10,4 +10,4 @@ resources:
 images:
   - name: medibook-appointment-service
     newName: 710590320983.dkr.ecr.ca-central-1.amazonaws.com/medibook-appointment-service
-    newTag: "4519b8e"
+    newTag: "d44e718"
