@@ -12,9 +12,9 @@ MediBook is a clinic appointment booking platform built as microservices and run
 
 ## Live environment
 
-**URL:** <http://medibook-dev-1328580321.ca-central-1.elb.amazonaws.com>
+The AWS environment is not running at the moment. It was removed on 2026-10-15 as part of the destroy and rebuild test ([docs/cleanup.md](docs/cleanup.md)), and it can be built again from this repository by following [docs/setup.md](docs/setup.md). Each build gets a new load balancer address.
 
-The site is HTTP only: there is no domain, so there is no TLS certificate. Enter test data only. The address changes if the environment is rebuilt.
+When it runs, the site is HTTP only: there is no domain, so there is no TLS certificate. Enter test data only.
 
 ## Architecture on AWS
 
